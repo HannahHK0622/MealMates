@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Profile</h1>
+
+<p>ID: {{ profile.id }}</p>
+
+<p>Username: {{ profile.username }}</p>
+
+<p>Email: {{ profile.email }}</p>
+
+<p>Given Name: {{ profile.given_name }}</p>
+
+<p>Family Name: {{ profile.family_name }}</p>
+
+<p>Can Buy: {{ profile.can_buy }}</p> 
+
+<p>Can Sell: {{ profile.can_sell }}</p>
+
+<p>Diets: 
+  {% for diet in profile.diet %}
+    {{ diet }}
+  {% endfor %}
+</p>
+
+<p>Rating: {{ profile.rating }}</p>
+
+<p>Location: {{ profile.location }}</p>
+
+{% endblock %}
