@@ -15,7 +15,7 @@ CONTAINS = [
     Contains(id=1, name="Dairy"),
     Contains(id=2, name="Eggs"),
     Contains(id=3, name="Gluten"),
-    ...
+    # ...
 ]
 
 RATINGS = [
@@ -33,8 +33,8 @@ class Profile(m.Model):
     )
     given_name = m.CharField(max_length=30)
     family_name = m.CharField(max_length=30)
-    can_buy = m.BooleanField()
-    can_sell = m.BooleanField()
+    can_buy = m.BooleanField(default=False)
+    can_sell = m.BooleanField(default=False)
     diet_reqs = m.ManyToManyField(Contains)
     rating = m.ForeignKey(
         Rating, 

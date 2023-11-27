@@ -28,8 +28,8 @@ def create_user(request):
 	profile.user = user
 	profile.given_name = request.POST.get('given_name')
 	profile.family_name = request.POST.get('family_name') 
-	profile.can_buy = bool(request.POST.get('is_buyer'))
-	profile.can_sell = bool(request.POST.get('is_seller'))
+	profile.can_buy = request.cleaned_data['is_buyer']
+	profile.can_sell = request.cleaned_data['is_seller']
 	profile.rating = None
 	profile.location = request.POST.get('location')
 	profile.save()
@@ -41,15 +41,19 @@ def create_user(request):
 @login_required
 def get_profile(request):
 	user = request.GET.get('requested_user')
+	user = request.user 
 	try:
 		profile = Profile.objects.get(user=user)
 	except:
-		return HttpResponse(f"request.GET.get('requested_user') does not exist.")
+		pass
 	if user != request.user:
 		if request.user.is_staff or request.user.is_superuser:
 			pass
-		else: return HttpResponse(f"{request.user.username} is not authenticated to see {user.username}.")
-	return({
+		
+	return(
+	# 	{"information": "value"}
+	# )
+		{"information" :{
 		"id": user.id,
 		"username": user.username,
 		"email": user.email,
@@ -57,10 +61,10 @@ def get_profile(request):
 		"family_name": profile.family_name,
 		"can_buy": profile.can_buy,
 		"can_sell": profile.can_sell,
-		"diet": profile.diet_reqs,
+		"diet": profile.diet_reqs.all(),
 		"rating": profile.rating,
 		"location": profile.location
-	}) 
+	}}) 
 
 @login_required
 def update_profile(request):
@@ -80,8 +84,8 @@ def update_profile(request):
 	if(password):
 		user.set_password(password)
 
-	user.is_staff = request.POST.get('privilieges')['IS_STAFF']
-	user.is_superuser = request.POST.get('privilieges') [ 'IS_SUPERUSER']
+	user.is_staff = bool(request.POST.get('is_staff'))
+	user.is_superuser = bool(request.POST.get('is_superuser'))
 
 	user.save()
 
@@ -89,8 +93,8 @@ def update_profile(request):
 	profile.user = user
 	profile.given_name = request.POST.get('given_name')
 	profile.family_name = request.POST.get('family_name') 
-	profile.can_buy = request.POST.get('user_role')['buyer']
-	profile.can_sell = request.POST.get('user_role')['seller']
+	profile.can_buy = bool(request.POST.get('is_buyer'))
+	profile.can_sell = bool(request.POST.get('is_seller'))
 	profile.diet_reqs.set(CONTAINS[id] for id in request.POST.getlist('diets'))
 	profile.rating = None
 	profile.location = request.POST.get('location')
@@ -137,3 +141,22 @@ def cancel_order(request):
 		order.buyer is not request.user
 	):
 		return HttpResponse(f"{buyer.username} has no privilieges to cancel {order.id}")
+	
+def seemeals(request):
+	listings = Meal.objects.all()
+	meal_details = []
+	iter = 0
+	for listing in listings:
+		meal_details[iter] = {
+			"meal" : {
+				"id": listing.id,
+				"seller": listing.seller.id,
+				"food_class": listing.food_class.all(),
+				"price": listing.price,
+				"listed_date": listing.listed_date,
+				"sell_by": str(listing.sell_by)
+			}
+		}
+	return(
+		meal_details
+	)
