@@ -19,8 +19,8 @@ def create_user(request):
 	user.email = email
 	user.set_password(password)
 
-	user.is_staff = request.POST.get('privilieges')['IS_STAFF']
-	user.is_superuser = request.POST.get('privilieges') [ 'IS_SUPERUSER']
+	user.is_staff = bool(request.POST.get('is_staff'))
+	user.is_superuser = bool(request.POST.get('is_superuser'))
 
 	user.save()
 
@@ -28,11 +28,12 @@ def create_user(request):
 	profile.user = user
 	profile.given_name = request.POST.get('given_name')
 	profile.family_name = request.POST.get('family_name') 
-	profile.can_buy = request.POST.get('user_role')['buyer']
-	profile.can_sell = request.POST.get('user_role')['seller']
-	profile.diet_reqs.set(CONTAINS[id] for id in request.POST.getlist('diets'))
+	profile.can_buy = bool(request.POST.get('is_buyer'))
+	profile.can_sell = bool(request.POST.get('is_seller'))
 	profile.rating = None
 	profile.location = request.POST.get('location')
+	profile.save()
+	profile.diet_reqs.set(CONTAINS[id] for id in request.POST.getlist('diets'))
 	profile.save()
 
 	return HttpResponse("User Created")

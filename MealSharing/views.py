@@ -3,8 +3,27 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from .models import *
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from .forms import *
 from django.contrib import auth
 from . import dbops
+
+# Contains.objects.bulk_create(
+# 	CONTAINS := [
+# 		Contains(id = 0, name="Vegan"),
+# 		Contains(id=1, name="Dairy"),
+# 		Contains(id=2, name="Eggs"),
+# 		Contains(id=3, name="Gluten"),
+# 		# ...
+# 	])
+
+# Rating.objects.bulk_create(
+# 	RATINGS := [
+# 	Rating(code="A+", name="Very Good"), 
+# 	Rating(code="A", name="Good"),
+# 	Rating(code="B", name="Okay"),
+# 	Rating(code="C", name="Fair"), 
+# 	Rating(code="D", name="Bad"),
+# ])
 
 @login_required
 def create_user(request):
@@ -15,15 +34,17 @@ def create_user(request):
 		return HttpResponse("POST request required.")
 @login_required
 def add_user(request):
+	form = CreateUserForm()
+	context = {'form': form}
 	if request.method == "POST":
 		dbops.create_user(request)
-	return render(request, "home.html  ")
+	return render(request, "make_user.html", context)
 
 @login_required
 def change_user(request):
 	if(request.method == "POST"):
 		dbops.update_profile(request)
-	return 
+	return render(request, "home.html")
 
 @login_required
 def get_profile(request):
