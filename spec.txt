@@ -1,0 +1,21 @@
+The MealMates app is an app that allows the use of 
+
+views;
+Login
+Logout
+Register
+
+@seller
+Meal management
+	- see listed meals
+	- Add meals
+	- delete meals
+
+Order management
+	- See orders
+
+@buyer
+Merchant browsing
+	- Nearby merchants
+	- Make/delete orders
+	- Set personal prefs

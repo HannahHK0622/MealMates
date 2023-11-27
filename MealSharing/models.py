@@ -15,7 +15,7 @@ CONTAINS = [
     Contains(id=1, name="Dairy"),
     Contains(id=2, name="Eggs"),
     Contains(id=3, name="Gluten"),
-    ...
+    # ...
 ]
 
 RATINGS = [

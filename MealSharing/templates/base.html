@@ -9,11 +9,14 @@
     <a href="/">Home</a>
     <a href="/profile">Profile</a>
     {% if user.is_authenticated %}
-    Hello, user!
+    
       <a href="/logout">Logout</a>
+      Hello, user!
     {% else %}
-    Hello, guest!
-      <a href="/login">Login</a> 
+    
+      <a href="/login">Login</a>
+      Hello, guest!
+
     {% endif %}
   </header>
 
