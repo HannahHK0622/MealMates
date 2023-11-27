@@ -28,8 +28,8 @@ def create_user(request):
 	profile.user = user
 	profile.given_name = request.POST.get('given_name')
 	profile.family_name = request.POST.get('family_name') 
-	profile.can_buy = bool(request.POST.get('is_buyer'))
-	profile.can_sell = bool(request.POST.get('is_seller'))
+	profile.can_buy = request.cleaned_data['is_buyer']
+	profile.can_sell = request.cleaned_data['is_seller']
 	profile.rating = None
 	profile.location = request.POST.get('location')
 	profile.save()

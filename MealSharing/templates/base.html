@@ -10,13 +10,14 @@
     <a href="/profile">Profile</a>
     {% if user.is_authenticated %}
     
-      <a href="/logout">Logout</a>
+    <a href="/logout">Logout</a>
       Hello, user!
+    <a href="/make-user"> Make a new user...</a>
     {% else %}
     
-      <a href="/login">Login</a>
+    <a href="/login">Login</a>
       Hello, guest!
-
+    <a href="/register"> register...</a>
     {% endif %}
   </header>
 
