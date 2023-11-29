@@ -1,0 +1,31 @@
+{%extends 'base.html'%}
+{%block content%}
+
+<h1>Nearby meals</h1>
+<p> Click <a href='/list'> here </a> to list...</p>
+<ul>
+	{% for key, meal in meals.items %}
+	{% if not meals.shown %}
+	<p>DEBUGGING, PRETEND THIS ISN'T HERE</p>
+	{%endif%}
+	 <li>
+	  <p>ID: {{ meal.id }}</p>  
+	  <p>Seller: {{ meal.seller }}</p>
+	  <p>Food Class: {%for class in meal.food_class.all%} {{ class }},  {%endfor%} </p> 
+	  <p>Price: {{ meal.price }}</p>
+	  <p>Listed Date: {{meal.listed_date }}</p>
+	  <p>Sell By: {{ meal.sell_by }}</p>
+	  <p>Number remaining: {{meal.remaining}}</p>
+	  {% if meal.seller == user.id %}
+	  This meal is your listing.
+	  <a href="/edit_meal/{{meal.id}}"> edit it.</a>
+	  {% else %}
+	  <a href="/buy/{{meal.id}}"> buy it.</a>
+	  {% endif %}
+	  {% comment %} {% endif %} {% endcomment %}
+	 </li>
+	{% endfor %}
+   </ul>
+   There are no more meals...
+
+{%endblock%}

@@ -1,0 +1,20 @@
+{%extends 'base.html'%}
+{%block content%}
+<h1>Edit your purchases</h1>
+
+{%for key, order in orders.items%}
+<li>
+	<p>ID: {{order.id}}</p>
+	<p>Meal ID: {{order.meal_id}}
+	<p>Seller: {{order.seller}}</p>
+	<p>Food Class: {%for class in order.food_class%} {{class}}, {%endfor%}</p>
+	<p>Price: {{order.price}}</p>
+	<p>Date bought: {{order.date_bought}}</p>
+	<a href="/delete_order/{{order.id}}"> Delete this order.</a>
+</li>
+
+{%endfor%}
+
+<p>That's all of your purchases.</p>
+
+{%endblock%}

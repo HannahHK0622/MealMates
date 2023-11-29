@@ -27,16 +27,22 @@ class SuperuserMakeUserForm(StaffMakeUserForm):
 	is_superuser = f.BooleanField(required=False)
 
 class MealListingMaker(f.Form):
-	meal_id = f.IntegerField()
 	food_class = f.MultipleChoiceField(
 		label = "allergens & food classes",
-		widget= f.SelectMultiple,
-		choices = [(diet.id, diet.name) for diet in Contains.objects.all()],
+		widget= f.SelectMultiple(attrs={'size':Contains.objects.count()}),
+		choices = ((diet.id, diet.name) for diet in Contains.objects.all()),
 		required=False 
 	)
 	price = f.FloatField()
-	sell_by = f.DateField()
+	sell_by = f.DateField(widget=f.SelectDateWidget)
 	internal_id = f.CharField(max_length=40, required=False)
+
+class MealListingEditor(MealListingMaker):
+	delete = f.BooleanField(required=False)
+
+	def populate(self, meal_data):
+		meal = next(iter(meal_data.values()))
+		self.initial = {k:v for k,v in meal.items() if k in self.fields}
 
 class MakeOrder(f.Form):
 	meal_id = f.IntegerField()

@@ -26,6 +26,17 @@ from . import dbops
 # ])
 
 @login_required
+def edit_purchase(request):
+	if request == 'POST':
+		pass
+	else:
+		orders = dbops.get_orders(request)
+		context = {'orders': orders}
+		return render(request, 'edit_purchase.html', context)
+
+
+
+@login_required
 def create_user(request):
 	if request.method == 'POST':
 		result = dbops.create_user(request)
@@ -65,10 +76,11 @@ def update_profile(request):
 @login_required
 def make_listing(request):
 	if request.method == 'POST':
-		result = dbops.make_listing(request)  
-		return HttpResponse(result)
+		dbops.make_listing(request)
+		return render(request, 'makelisting.html', {'form': MealListingMaker}, status=200)
 	else:
-		return HttpResponse("POST request required.")
+		context= {'form': MealListingMaker}
+		return render(request, 'makelisting.html', context)
 		
 # Delete Listing
 @login_required  
@@ -81,12 +93,13 @@ def delete_listing(request):
 			
 # Buy Meal  
 @login_required
-def buy_meal(request):
+def purchase(request, pk):
 	if request.method == 'POST':
-		result = dbops.buy_meal(request)
-		return HttpResponse(result)
+		result = dbops.buy_meal(request, pk)
+		return render(request, 'browse.html', {'id': pk, 'meals': dbops.get_meal(request, pk)})
 	else:
-		return HttpResponse("POST request required.")
+		dbops.buy_meal(request, pk)
+		return render(request, 'browse.html', {'meals': dbops.get_meal(request)})
 		
 # Cancel Order
 @login_required         
@@ -121,9 +134,55 @@ def listingmgmt(request):
 	if request.method == 'POST':
 		return render(request, 'home.html', status=300)
 	else:
-		meals = dbops.seemeals(request)
-		return render(request, 'lstmgmt.html', {'form' : MealListingMaker})
+		meals = dbops.get_meal(request)
+		context = {'form' : MealListingMaker, 'meals' : meals}
+		print(context)
+		return render(request,
+				 		'browse.html',
+						context)
+	"""
+	Meals dict be like...
+	{
+		meal:	{
+			"id": ...
+			"seller": ...
+		},
+		meal: {
+			"id": ...
+			"seller": ...
+		},
+	}
+
+	"""
+
+def edit_meal(request, id=None):
+	if request.method == 'POST':
+		print(request.POST, "request here")
+		if request.POST.get('delete') == 'on':
+			Meal.objects.get(
+								meal_id = request.POST.get('meal_id')
+		).delete()
+		else:
+			dbops.update_meal(request)
+		return render(request, 'browse.html', {
+			'meals': dbops.get_meal(request)
+		})	
+
+	else:
+		meal = dbops.get_meal(request, id)
+		form = MealListingEditor()
+		form.populate(meal)
+		#do something to form = prepopulate(form, meal)?
+		return render(request, 'edit_meal.html', {'meals': meal, 'idx': id, 'form': form})
 		
+def delete_order(request, pk):
+	order = Order.objects.get(id=pk)
+	
+	order.delete()
+	orders = dbops.get_orders(request)
+	context = {'orders': orders}
+	return render(request, 'edit_purchase.html', context)
+
 # login view
 def login(request):
 	if request.method == 'POST':

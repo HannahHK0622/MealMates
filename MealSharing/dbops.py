@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 from .models import *
+from .forms import *
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 
@@ -9,6 +10,7 @@ import datetime
 
 # POST /users
 def create_user(request):
+	form = SuperuserMakeUserForm()
 
 	username = request.POST.get('username')  
 	email = request.POST.get('email')
@@ -19,8 +21,8 @@ def create_user(request):
 	user.email = email
 	user.set_password(password)
 
-	user.is_staff = bool(request.POST.get('is_staff'))
-	user.is_superuser = bool(request.POST.get('is_superuser'))
+	user.is_staff = request.POST.get('is_staff') == 'on'
+	user.is_superuser = request.POST.get('is_superuser') == 'on'
 
 	user.save()
 
@@ -28,8 +30,8 @@ def create_user(request):
 	profile.user = user
 	profile.given_name = request.POST.get('given_name')
 	profile.family_name = request.POST.get('family_name') 
-	profile.can_buy = request.cleaned_data['is_buyer']
-	profile.can_sell = request.cleaned_data['is_seller']
+	profile.can_buy = request.POST.get('can_buy') == 'on'
+	profile.can_sell = request.POST.get('can_sell') == 'on'
 	profile.rating = None
 	profile.location = request.POST.get('location')
 	profile.save()
@@ -103,18 +105,39 @@ def update_profile(request):
 
 @login_required
 def make_listing(request):
-	seller = request.POST.get('seller')
-	price = request.POST.get('price')
+	print("The request is", request.POST)
 
-	listing = Meal()
+	update_meal(request)
+
+	return HttpResponse("Listing Created")
+
+def update_meal(request):
+	seller = request.user
+	price = request.POST.get('price')
+	listing = Meal() if not (idx := request.POST.get('meal_id')) else Meal.objects.get(meal_id = idx)
 	listing.seller = seller
 	listing.price = price
 	listing.listed_date = datetime.date.today()
-	listing.diet_class.set(CONTAINS[id] for id in request.POST.getlist('diets'))
-
+	listing.sell_by = datetime.datetime(*(map(int,
+											map(request.POST.get,
+												("sell_by_year", "sell_by_month", "sell_by_day")))))
 	listing.save()
 
-	return HttpResponse("Listing Created")
+	print(listing.meal_id, "listing id is")
+
+	try:
+		id = [*map(
+				int,
+				request.POST.getlist('food_class')
+			)]
+		print(id)
+		listing.food_class.set(id)
+		
+	except:
+		listing.food_class.clear()
+
+	finally:	
+		listing.save()
 
 @login_required
 def delete_listing(request):
@@ -124,39 +147,72 @@ def delete_listing(request):
 	return HttpResponse("Listing deleted")
 
 @login_required
-def buy_meal(request):
+def buy_meal(request, pk):
+	meal = Meal.objects.get(meal_id=pk)
 	buyer = request.user
-	if not buyer.can_buy:
-		return HttpResponse(f"{request.user.username} does not have permission to buy.")
 	order = Order()
-	order.buyer = request.user
+	order.buyer = buyer
 	order.date_bought = datetime.date.today()
+	order.meal = meal
+	order.save(force_insert=True)
+	meal.shown = False
+	meal.number_listed -= 1
+	meal.save()
 
-def cancel_order(request):
+def cancel_order(request, pk):
 	buyer = request.user
-	order = request.order.id
-	if(
-		not buyer.can_buy
-		or
-		order.buyer is not request.user
-	):
-		return HttpResponse(f"{buyer.username} has no privilieges to cancel {order.id}")
+	order = request.POST.get(id = pk)
+	meal = request.POST.get(order.meal_id)
+
+
 	
-def seemeals(request):
-	listings = Meal.objects.all()
-	meal_details = []
+def get_meal(request, idx=None):
+	listings = Meal.objects.all() if not idx else [Meal.objects.get(meal_id=idx)]
+	meal_details = {}
 	iter = 0
 	for listing in listings:
-		meal_details[iter] = {
-			"meal" : {
-				"id": listing.id,
+		meal_details[f'meal{iter}']= {
+				"id": listing.meal_id,
 				"seller": listing.seller.id,
 				"food_class": listing.food_class.all(),
 				"price": listing.price,
 				"listed_date": listing.listed_date,
-				"sell_by": str(listing.sell_by)
+				"sell_by": listing.sell_by,
+				"showable": listing.shown,
+				"remaining": listing.number_listed
 			}
-		}
+		
+		iter += 1
 	return(
 		meal_details
 	)
+
+def get_orders(request):
+	"""
+	orders should be like:
+	f"order{order.id}": {
+				"id": meal.meal_id,
+				"seller": meal.seller.id,
+				"food_class": meal.food_class.all(),
+				"price": meal.price,
+				"date_bought": order.date_bought
+				}
+	}
+	"""
+
+	orders = Order.objects.filter(buyer=request.user)
+	order_details = {}
+	iter = 0
+	for order in orders:
+		meal = Meal.objects.get(meal_id = order.meal.meal_id)
+		order_details[f"order{iter}"] = {
+				"id": order.id,
+				"meal_id": meal.meal_id,
+				"seller": meal.seller.id,
+				"food_class": meal.food_class.all(),
+				"price": meal.price,
+				"date_bought": order.date_bought
+ 		}
+		iter += 1
+
+	return order_details

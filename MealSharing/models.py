@@ -42,18 +42,8 @@ class Profile(m.Model):
         null=True)
     location = m.CharField(max_length=100)
 
-class Order(m.Model):
-    id = m.IntegerField(primary_key=True)
-    buyer = m.ForeignKey(
-        User,
-        on_delete = m.CASCADE,
-        related_name="Buyer"
-    )
-    date_bought = m.DateField()
-
-
 class Meal(m.Model):
-    meal_id = m.IntegerField(primary_key=True)
+    meal_id = m.AutoField(primary_key=True)
     seller = m.ForeignKey(
         User,
         on_delete=m.CASCADE,
@@ -64,9 +54,24 @@ class Meal(m.Model):
     listed_date=m.DateField()
     sell_by=m.DateField()
     internal_id = m.CharField(max_length=40)
-    order_id = m.ForeignKey(
-        Order,
-        on_delete= m.SET_NULL,
-        null= True
+    number_listed = m.IntegerField(default=1)
+    shown = m.BooleanField(
+        default=True
     )
+class Order(m.Model):
+    id = m.AutoField(primary_key=True)
+    buyer = m.ForeignKey(
+        User,
+        on_delete = m.CASCADE,
+        related_name="Buyer"
+    )
+    meal = m.ForeignKey(
+        Meal,
+        on_delete=m.CASCADE,
+        null=True
+    )
+    date_bought = m.DateField()
+
+
+
 # Create your models here.
