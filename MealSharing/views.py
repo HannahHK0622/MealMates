@@ -177,8 +177,7 @@ def edit_meal(request, id=None):
 		
 def delete_order(request, pk):
 	order = Order.objects.get(id=pk)
-	
-	order.delete()
+	dbops.cancel_order(request, pk)
 	orders = dbops.get_orders(request)
 	context = {'orders': orders}
 	return render(request, 'edit_purchase.html', context)

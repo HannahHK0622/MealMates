@@ -63,7 +63,7 @@ def get_profile(request):
 		"family_name": profile.family_name,
 		"can_buy": profile.can_buy,
 		"can_sell": profile.can_sell,
-		"diet": profile.diet_reqs.all(),
+		"diet": [Contains.objects.get(id=id) for id in profile.diet_reqs.all()],
 		"rating": profile.rating,
 		"location": profile.location
 	}}) 
@@ -105,7 +105,6 @@ def update_profile(request):
 
 @login_required
 def make_listing(request):
-	print("The request is", request.POST)
 
 	update_meal(request)
 
@@ -121,6 +120,7 @@ def update_meal(request):
 	listing.sell_by = datetime.datetime(*(map(int,
 											map(request.POST.get,
 												("sell_by_year", "sell_by_month", "sell_by_day")))))
+	listing.number_listed = request.POST.get('number_listed')
 	listing.save()
 
 	print(listing.meal_id, "listing id is")
@@ -155,14 +155,18 @@ def buy_meal(request, pk):
 	order.date_bought = datetime.date.today()
 	order.meal = meal
 	order.save(force_insert=True)
-	meal.shown = False
 	meal.number_listed -= 1
+	if meal.number_listed == 0: meal.shown = False
 	meal.save()
 
 def cancel_order(request, pk):
-	buyer = request.user
-	order = request.POST.get(id = pk)
-	meal = request.POST.get(order.meal_id)
+	order = Order.objects.get(id=pk)
+	meal = Meal.objects.get(meal_id=order.meal_id)
+	meal.number_listed += 1
+	if meal.number_listed > 0: 
+		meal.shown = True
+	meal.save()
+	order.delete()
 
 
 	
@@ -174,12 +178,14 @@ def get_meal(request, idx=None):
 		meal_details[f'meal{iter}']= {
 				"id": listing.meal_id,
 				"seller": listing.seller.id,
-				"food_class": listing.food_class.all(),
+				"food_class": [Contains.objects.get(id=food.id).name for food in listing.food_class.all()],
 				"price": listing.price,
 				"listed_date": listing.listed_date,
 				"sell_by": listing.sell_by,
-				"showable": listing.shown,
-				"remaining": listing.number_listed
+				"shown": listing.shown,
+				"remaining": listing.number_listed,
+				"number_listed": listing.number_listed,
+				"internal_id": listing.internal_id
 			}
 		
 		iter += 1

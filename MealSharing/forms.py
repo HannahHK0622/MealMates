@@ -35,6 +35,7 @@ class MealListingMaker(f.Form):
 	)
 	price = f.FloatField()
 	sell_by = f.DateField(widget=f.SelectDateWidget)
+	number_listed = f.IntegerField()
 	internal_id = f.CharField(max_length=40, required=False)
 
 class MealListingEditor(MealListingMaker):
